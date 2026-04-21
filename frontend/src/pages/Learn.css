@@ -1,0 +1,40 @@
+.learn-page {
+  padding-top: 3rem;
+  padding-bottom: 4rem;
+}
+
+.learn-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.learn-header h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.learn-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.learn-content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4rem;
+}
+
+@media (min-width: 1024px) {
+  .learn-content-grid {
+    grid-template-columns: 1.5fr 1fr;
+    align-items: flex-start;
+  }
+
+  .sticky-wizard {
+    position: sticky;
+    top: 100px; /* Offset for navbar */
+  }
+}

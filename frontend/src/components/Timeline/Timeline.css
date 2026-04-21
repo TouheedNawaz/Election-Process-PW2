@@ -1,0 +1,216 @@
+/* Timeline Container */
+.election-timeline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.timeline-header {
+  text-align: center;
+}
+
+.timeline-header h2 {
+  font-size: 2rem;
+  color: var(--text-primary);
+}
+
+.timeline-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* Country Selector */
+.country-selector {
+  display: flex;
+  gap: 0.5rem;
+  background-color: var(--bg-surface);
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.country-selector::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.country-tab {
+  flex: 1;
+  min-width: max-content;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.country-tab:hover {
+  background-color: rgba(107, 114, 128, 0.05);
+}
+
+.country-tab.active {
+  background-color: var(--accent-blue);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.country-flag-icon {
+  width: 20px;
+  height: 15px;
+  object-fit: cover;
+  border-radius: 2px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Country Info Card */
+.country-info-card {
+  background-color: rgba(37, 99, 235, 0.05);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.info-label {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 120px;
+}
+
+.info-value {
+  color: var(--text-secondary);
+}
+
+/* Timeline Steps */
+.timeline-steps-container {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1rem;
+}
+
+.timeline-step {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.timeline-line-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 32px;
+}
+
+.timeline-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--accent-blue);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  z-index: 2;
+  box-shadow: 0 0 0 4px var(--bg-primary);
+}
+
+.timeline-line {
+  width: 2px;
+  flex-grow: 1;
+  background-color: var(--border-color);
+  margin: 4px 0;
+}
+
+.timeline-card {
+  flex-grow: 1;
+  margin-bottom: 2rem;
+  cursor: pointer;
+}
+
+.timeline-card.expanded {
+  border-color: var(--accent-blue);
+}
+
+.timeline-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.timeline-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.timeline-duration {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--accent-amber);
+  font-weight: 600;
+  background-color: rgba(217, 119, 6, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+}
+
+.expand-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.timeline-details {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  animation: fadeDown 0.3s ease-out forwards;
+}
+
+.timeline-description {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.timeline-ask-btn {
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.timeline-ask-btn:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
