@@ -37,11 +37,17 @@ An interactive diagnostic tool.
 * Answer a few simple questions regarding your age, citizenship, and legal standing.
 * Instantly find out if you are eligible to vote, complete with specialized advice for NRIs (Non-Resident Indians) and overseas citizens.
 
-### 🤖 ElectIQ AI Assistant
-A context-aware, conversational AI chatbot powered by **Google Gemini 2.5 Flash**.
+### 🤖 ElectIQ Agentic AI Assistant
+A context-aware, active AI agent powered by **Google Gemini 2.5 Flash**.
+* Streams responses in real-time using **Server-Sent Events (SSE)** for a fast, app-like feel.
 * Strictly prompted to remain politically neutral, focusing purely on *civic education and facts*.
 * Persistent chat histories via **Firebase Firestore**, allowing you to pick up where you left off.
-* Pre-loaded with "Starter Chips" for quick, common queries.
+* Custom, crash-proof `SimpleMarkdown` rendering engine.
+
+### 🗺️ What-If Scenarios & Roadmap Generator
+Advanced agentic routing for personalized experiences.
+* **Scenarios:** Choose interactive hypothetical situations (e.g., "What if I miss the registration deadline?") and watch the AI instantly generate a tailored guide for your selected country.
+* **Personalized Roadmap:** After completing the Eligibility Wizard, the AI generates a customized, 6-step action plan specific to your unique profile and legal standing.
 
 ### 🎯 Dynamic Knowledge Quiz
 Test your civic knowledge!
@@ -62,13 +68,14 @@ ElectIQ employs a decoupled architecture optimized for scalability, security, an
 ### Frontend
 * **Core:** React 18, Vite
 * **Routing:** React Router DOM v6
-* **Styling:** Custom "Civic Editorial" CSS Design System (Zero dependencies, pure CSS variables, fully responsive, dark/light mode enabled).
-* **Icons:** Lucide React
+* **Styling:** Custom "Premium Minimalist" CSS Design System featuring Deep Navy and Neon Teal accents, glassmorphism, and smooth dark/light mode transitions.
+* **Markdown:** `SimpleMarkdown` (Custom zero-dependency markdown renderer designed to prevent version conflicts).
 * **Testing:** Vitest & React Testing Library
 
 ### Backend
 * **Core:** Node.js, Express 5
-* **AI Integration:** `@google/genai` SDK (Gemini 2.5 Flash)
+* **AI Integration:** `@google/genai` SDK (Gemini 2.5 Flash) with Agentic active routing.
+* **Streaming:** Server-Sent Events (SSE) implementation for real-time generative output.
 * **Security:** `helmet` (HTTP headers), `express-rate-limit` (DDoS/Spam protection), `cors`.
 * **Testing:** Jest & Supertest
 
