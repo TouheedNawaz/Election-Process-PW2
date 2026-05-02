@@ -6,8 +6,7 @@ import Learn from './pages/Learn';
 import Assistant from './pages/Assistant';
 import Quiz from './pages/Quiz';
 import Glossary from './pages/Glossary';
-
-// All pages are now implemented
+import Scenarios from './pages/Scenarios';
 
 function App() {
   return (
@@ -21,6 +20,7 @@ function App() {
             <Route path="/assistant" element={<Assistant />} />
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/glossary" element={<Glossary />} />
+            <Route path="/scenarios" element={<Scenarios />} />
           </Routes>
         </main>
         <Footer />

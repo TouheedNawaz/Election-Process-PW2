@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, MessageSquare, Target, BookA } from 'lucide-react';
+import { BookOpen, MessageSquare, Target, BookA, Map } from 'lucide-react';
 import './Home.css';
 
 const Home = () => {
@@ -83,6 +83,14 @@ const Home = () => {
           </div>
           <h2>Civic Glossary</h2>
           <p>Confused by jargon? Look up terms like FPTP, EVM, and Electoral Roll.</p>
+        </Link>
+
+        <Link to="/scenarios" className="nav-card">
+          <div className="nav-card-icon icon-emerald">
+            <Map size={24} />
+          </div>
+          <h2>What-If Scenarios</h2>
+          <p>Lost your ID? Moved constituency? Get an AI action plan for any election situation.</p>
         </Link>
       </section>
 

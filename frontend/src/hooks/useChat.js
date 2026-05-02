@@ -1,8 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import {
+  collection, addDoc, query, orderBy,
+  getDocs, serverTimestamp, doc, setDoc
+} from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import { db, auth } from '../services/firebase';
-import { sendChatMessage } from '../services/api';
+import { streamChatMessage } from '../services/api';
+
+// Fallback local ID when Firebase is unavailable
+const makeLocalId = () => `local-${Math.random().toString(36).slice(2, 9)}`;
+
+const makeGreeting = (ctx) => ({
+  id: 'greeting',
+  role: 'assistant',
+  content: `Hi! I'm ElectIQ. How can I help you understand the election process${ctx ? ` in ${ctx}` : ''}?`,
+  timestamp: new Date()
+});
 
 export const useChat = (countryContext = '') => {
   const [messages, setMessages] = useState([]);
@@ -10,59 +23,48 @@ export const useChat = (countryContext = '') => {
   const [sessionId, setSessionId] = useState(null);
   const [error, setError] = useState(null);
 
-  // Initialize Anonymous Session
+  // On mount (or country change): authenticate and load history ONCE.
+  // We use getDocs (one-time read) instead of onSnapshot (live listener)
+  // to avoid race conditions where Firestore overwrites in-progress streaming state.
   useEffect(() => {
-    const initSession = async () => {
+    let cancelled = false;
+
+    const init = async () => {
       try {
-        const userCredential = await signInAnonymously(auth);
-        const uid = userCredential.user.uid;
-        
-        // Use a daily session or just the UID as the session base
-        // For hackathon simplicity, we'll just use their UID as the session ID
-        const sid = uid;
+        const credential = await signInAnonymously(auth);
+        if (cancelled) return;
+
+        const sid = credential.user.uid;
         setSessionId(sid);
 
-        // Ensure session doc exists
+        // Upsert session document
         await setDoc(doc(db, 'sessions', sid), {
-          createdAt: serverTimestamp(),
           country: countryContext || 'general',
           lastActive: serverTimestamp()
         }, { merge: true });
 
-        // Listen for messages in this session
+        if (cancelled) return;
+
+        // Load existing messages once (no live listener)
         const messagesRef = collection(db, 'sessions', sid, 'messages');
-        const q = query(messagesRef, orderBy('timestamp', 'asc'));
+        const snapshot = await getDocs(query(messagesRef, orderBy('timestamp', 'asc')));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          const msgs = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          
-          // Only set messages if we have some, otherwise add a greeting
-          if (msgs.length > 0) {
-            setMessages(msgs);
-          } else {
-            // Local greeting, not saved to DB to save reads/writes
-            setMessages([
-              {
-                id: 'greeting',
-                role: 'assistant',
-                content: `Hi! I'm ElectIQ. How can I help you understand the election process${countryContext ? ` in ${countryContext}` : ''}?`,
-                timestamp: new Date()
-              }
-            ]);
-          }
-        });
+        if (cancelled) return;
 
-        return () => unsubscribe();
+        const msgs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setMessages(msgs.length > 0 ? msgs : [makeGreeting(countryContext)]);
       } catch (err) {
-        console.error("Auth/Firestore Error:", err);
-        setError("Failed to initialize chat session.");
+        if (cancelled) return;
+        // Firebase unavailable → local mode (no persistence, full functionality)
+        console.warn('Firebase unavailable, switching to local mode:', err.code || err.message);
+        setSessionId(makeLocalId());
+        setMessages([makeGreeting(countryContext)]);
       }
     };
 
-    initSession();
+    init();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryContext]);
 
   const sendMessage = useCallback(async (text) => {
@@ -70,45 +72,67 @@ export const useChat = (countryContext = '') => {
 
     setIsLoading(true);
     setError(null);
+    const streamingId = `streaming-${Date.now()}`;
 
     try {
-      const messagesRef = collection(db, 'sessions', sessionId, 'messages');
-
-      // 1. Save user message to Firestore
-      await addDoc(messagesRef, {
+      // Immediately add user bubble + empty AI streaming bubble to local state
+      const userMsg = {
+        id: `u-${Date.now()}`,
         role: 'user',
         content: text,
-        timestamp: serverTimestamp()
-      });
+        timestamp: new Date()
+      };
+      setMessages(prev => [
+        ...prev,
+        userMsg,
+        { id: streamingId, role: 'assistant', content: '', timestamp: new Date(), streaming: true }
+      ]);
 
-      // 2. Format history for context (last 5 messages to save tokens)
+      // Build history from current local state (last 5 turns, skip greeting/streaming)
       const historyForApi = messages
-        .filter(m => m.id !== 'greeting')
+        .filter(m => m.id !== 'greeting' && !m.streaming)
         .slice(-5)
         .map(m => ({ role: m.role, content: m.content }));
 
-      // 3. Call backend API
-      const reply = await sendChatMessage(text, countryContext, historyForApi);
+      // Stream tokens from Gemini — each token updates the streaming bubble
+      const fullReply = await streamChatMessage(
+        text,
+        countryContext,
+        historyForApi,
+        (_token, accumulated) => {
+          setMessages(prev =>
+            prev.map(m => m.id === streamingId ? { ...m, content: accumulated } : m)
+          );
+        }
+      );
 
-      // 4. Save AI response to Firestore
-      await addDoc(messagesRef, {
+      // Swap streaming bubble → final persisted bubble
+      const aiMsg = {
+        id: `a-${Date.now()}`,
         role: 'assistant',
-        content: reply,
-        timestamp: serverTimestamp()
-      });
+        content: fullReply,
+        timestamp: new Date()
+      };
+      setMessages(prev => [
+        ...prev.filter(m => m.id !== streamingId),
+        aiMsg
+      ]);
 
+      // Persist to Firestore in background (fire-and-forget; not critical for UI)
+      if (!sessionId.startsWith('local-')) {
+        const messagesRef = collection(db, 'sessions', sessionId, 'messages');
+        addDoc(messagesRef, { role: 'user', content: text, timestamp: serverTimestamp() }).catch(console.warn);
+        addDoc(messagesRef, { role: 'assistant', content: fullReply, timestamp: serverTimestamp() }).catch(console.warn);
+      }
     } catch (err) {
-      console.error("Chat Error:", err);
-      setError("Failed to send message or receive reply.");
+      console.error('Chat Error:', err);
+      // Remove broken streaming bubble on failure
+      setMessages(prev => prev.filter(m => m.id !== streamingId));
+      setError('Failed to get a response. Please try again.');
     } finally {
       setIsLoading(false);
     }
   }, [sessionId, messages, countryContext]);
 
-  return {
-    messages,
-    sendMessage,
-    isLoading,
-    error
-  };
+  return { messages, sendMessage, isLoading, error };
 };

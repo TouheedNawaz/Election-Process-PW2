@@ -11,7 +11,7 @@ const Footer = () => {
           <span className="footer-logo-text">ElectIQ</span>
           <p className="footer-tagline">Empowering voters across South Asia with clear, non-partisan electoral knowledge.</p>
         </div>
-        
+
         <div className="footer-links">
           <div className="footer-section">
             <h4>Resources</h4>
@@ -23,9 +23,9 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="footer-bottom">
-        <p>Made with ❤️ for Google Prompt Wars</p>
+        <p>Made with ❤️ for Google Prompt Wars by @AnonyMalist</p>
         <p className="footer-disclaimer">Not affiliated with any government entity. Built for educational purposes.</p>
       </div>
     </footer>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, CheckCircle, XCircle, AlertCircle, RotateCcw } from 'lucide-react';
+import RoadmapPanel from './RoadmapPanel';
 import './VoterWizard.css';
 
 const questions = [
@@ -43,6 +44,7 @@ const EligibilityWizard = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
+  const [finalAnswers, setFinalAnswers] = useState(null);
 
   const handleAnswer = (questionId, value) => {
     const newAnswers = { ...answers, [questionId]: value };
@@ -56,8 +58,10 @@ const EligibilityWizard = () => {
     }
   };
 
-  const calculateResult = (finalAnswers) => {
-    if (finalAnswers.age === 'no') {
+  const calculateResult = (resultAnswers) => {
+    const finalAnswers = resultAnswers;
+    setFinalAnswers(finalAnswers);
+    if (resultAnswers.age === 'no') {
       setResult({
         status: 'ineligible',
         title: 'Not Yet Eligible',
@@ -67,7 +71,7 @@ const EligibilityWizard = () => {
       return;
     }
 
-    if (finalAnswers.citizenship === 'no') {
+    if (resultAnswers.citizenship === 'no') {
       setResult({
         status: 'ineligible',
         title: 'Citizenship Required',
@@ -77,7 +81,7 @@ const EligibilityWizard = () => {
       return;
     }
     
-    if (finalAnswers.soundMind === 'yes') {
+    if (resultAnswers.soundMind === 'yes') {
       setResult({
         status: 'ineligible',
         title: 'Disqualified',
@@ -87,15 +91,15 @@ const EligibilityWizard = () => {
       return;
     }
 
-    if (finalAnswers.citizenship === 'nri') {
+    if (resultAnswers.citizenship === 'nri') {
       setResult({
         status: 'partial',
         title: 'Special Registration Required',
-        message: finalAnswers.country === 'india' 
+        message: resultAnswers.country === 'india' 
           ? 'NRIs can vote, but you must register as an Overseas Elector and vote in person at your registered constituency.'
           : 'Overseas voting rules apply. Please check your local consulate for current postal or internet voting provisions.',
         icon: <AlertCircle size={48} className="result-icon text-amber" />,
-        link: finalAnswers.country === 'india' ? 'https://eci.gov.in/voter/overseas-voters/' : '#'
+        link: resultAnswers.country === 'india' ? 'https://eci.gov.in/voter/overseas-voters/' : '#'
       });
       return;
     }
@@ -103,8 +107,8 @@ const EligibilityWizard = () => {
     // Default eligible
     let link = 'https://eci.gov.in';
     let body = 'Election Commission of India';
-    if (finalAnswers.country === 'pakistan') { link = 'https://ecp.gov.pk'; body = 'Election Commission of Pakistan'; }
-    if (finalAnswers.country === 'bangladesh') { link = 'http://www.ecs.gov.bd'; body = 'Election Commission Bangladesh'; }
+    if (resultAnswers.country === 'pakistan') { link = 'https://ecp.gov.pk'; body = 'Election Commission of Pakistan'; }
+    if (resultAnswers.country === 'bangladesh') { link = 'http://www.ecs.gov.bd'; body = 'Election Commission Bangladesh'; }
 
     setResult({
       status: 'eligible',
@@ -120,6 +124,7 @@ const EligibilityWizard = () => {
     setAnswers({});
     setCurrentStep(0);
     setResult(null);
+    setFinalAnswers(null);
   };
 
   const currentQ = questions[currentStep];
@@ -169,6 +174,11 @@ const EligibilityWizard = () => {
               <RotateCcw size={16} /> Start Over
             </button>
           </div>
+
+          {/* Personalized AI Roadmap — shown for eligible & partial users */}
+          {(result.status === 'eligible' || result.status === 'partial') && finalAnswers && (
+            <RoadmapPanel answers={finalAnswers} />
+          )}
         </div>
       )}
     </div>

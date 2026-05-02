@@ -5,9 +5,9 @@ import StarterChips from './StarterChips';
 import { useChat } from '../../hooks/useChat';
 import './Assistant.css';
 
-const ChatWindow = ({ initialQuery }) => {
+const ChatWindow = ({ initialQuery, countryContext = '' }) => {
   const [inputText, setInputText] = useState(initialQuery || '');
-  const { messages, sendMessage, isLoading, error } = useChat();
+  const { messages, sendMessage, isLoading, error } = useChat(countryContext);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -18,16 +18,15 @@ const ChatWindow = ({ initialQuery }) => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  // If initialQuery is passed and we have messages (session initialized), send it automatically
-  // using a ref to prevent double sending
-  const initialSent = useRef(false);
+  // Track the last query we auto-sent, so each new suggestion triggers correctly
+  const lastSentQuery = useRef(null);
   useEffect(() => {
-    if (initialQuery && !initialSent.current && messages.length > 0) {
+    if (initialQuery && initialQuery !== lastSentQuery.current && messages.length > 0 && !isLoading) {
+      lastSentQuery.current = initialQuery;
       sendMessage(initialQuery);
       setInputText('');
-      initialSent.current = true;
     }
-  }, [initialQuery, messages.length, sendMessage]);
+  }, [initialQuery, messages.length, sendMessage, isLoading]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
